@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Current Location with OpenStreetMap and Leaflet</title>
+    <title>Route from Current Location to Target Location</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 </head>
 <body>
     <div id="map" style="width: 100%; height: 500px;"></div>
 
     <script>
-        // สร้างแผนที่
         var map = L.map('map').setView([51.505, -0.09], 13);  // ตั้งค่าเริ่มต้น (กรณีหาตำแหน่งไม่เจอ)
 
         // เพิ่มแผนที่ OSM
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        // ตำแหน่งปลายทาง (จุดที่กำหนด)
+        var targetLatLon = [18.31738402694719, 99.3995927866414];
 
         // ใช้ Geolocation API เพื่อรับตำแหน่งปัจจุบัน
         if (navigator.geolocation) {
@@ -30,6 +33,25 @@
                 L.marker([lat, lon]).addTo(map)
                     .bindPopup('Your current location')
                     .openPopup();
+
+                // สร้างเส้นทางไปยังจุดที่กำหนด
+                L.Routing.control({
+                    waypoints: [
+                        L.latLng(lat, lon), // ตำแหน่งปัจจุบัน
+                        L.latLng(targetLatLon) // ตำแหน่งปลายทาง
+                    ],
+                    routeWhileDragging: true
+                }).addTo(map);
+
+                // สร้างเส้นทางกลับจากจุดที่กำหนดมายังตำแหน่งปัจจุบัน
+                L.Routing.control({
+                    waypoints: [
+                        L.latLng(targetLatLon), // ตำแหน่งปลายทาง
+                        L.latLng(lat, lon) // ตำแหน่งปัจจุบัน
+                    ],
+                    routeWhileDragging: true
+                }).addTo(map);
+
             }, function(error) {
                 alert('Unable to retrieve your location: ' + error.message);
             });
